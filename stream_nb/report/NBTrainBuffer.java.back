@@ -1,0 +1,67 @@
+import java.io.*;
+import java.util.*;
+
+public class NBTrainBuffer {
+
+    public static Integer keyCnt = 0;
+
+    public static void mapAddItem(Map<String, Integer> inputMap, String key, Integer number) {
+        if (inputMap.containsKey(key)) {
+            inputMap.put(key, inputMap.get(key) + 1);
+        } else {
+            if (inputMap.size() == keyCnt) {
+                for (String tmp : inputMap.keySet()) {
+                    System.out.println(tmp + "\t" + inputMap.get(tmp));
+                }
+                inputMap.clear();
+            }
+            inputMap.put(key, number);
+        }
+    }
+
+
+    public static void main(String[] args) {
+        keyCnt = Integer.parseInt(args[0]);
+        System.out.println("the buffer size is " + keyCnt);
+        /* load data from stdin*/
+        try {
+            BufferedReader br =
+                new BufferedReader(new InputStreamReader(System.in));
+            String readline;
+
+            // for debug use
+            //int cnt = 0;
+
+            // add buffer to do the test
+            Map<String, Integer> key2Cnt = new HashMap<String, Integer>();
+
+            while (null != (readline = br.readLine())) {
+                // for debug use
+                //if (cnt > 0) break;
+
+                List<String> tokens = Functions.tokenizeDoc(readline, 1);
+                // the first line is labels
+                String[] labels = tokens.get(0).split(",");
+                for (String label : labels) {
+                    // add a head, easier to parse
+                    mapAddItem(key2Cnt, "1" + label, 1);
+                    mapAddItem(key2Cnt, "2", 1);
+                    for (int i = 1; i< tokens.size(); i++) {
+                        String keyTmp = "4" + tokens.get(i) + "&Y=" + label;
+                        mapAddItem(key2Cnt, keyTmp, 1);
+                    }
+                    mapAddItem(key2Cnt, "3" + label, tokens.size() - 1);
+                }
+                // for debug use
+                //cnt++;
+            }
+
+        } catch(IOException e) {
+                e.printStackTrace();
+        }
+
+
+    }
+
+
+}

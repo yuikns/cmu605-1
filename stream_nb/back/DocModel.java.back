@@ -1,0 +1,41 @@
+import java.util.*;
+
+public class DocModel {
+    int docId;
+    Map<String, Double> label2Score;
+    int maxScoreIndex;
+
+    public DocModel() {
+        this.label2Score = new HashMap<String, Double>();
+    }
+
+    public DocModel(int docId) {
+        this.label2Score = new HashMap<String, Double>();
+        this.docId = docId;
+    }
+
+    public void setLabelScore(String label, double score) {
+        if (this.label2Score.containsKey(label)) {
+            Double tmpScore = label2Score.get(label);
+            this.label2Score.put(label, tmpScore + score);
+        } else {
+            this.label2Score.put(label, score);
+        }
+    }
+
+    public String findMaxLabel(Map<String, Double> labelScore) {
+        Double maxScore = -10000000.0;
+        String maxLabel = "null";
+        for (String label : this.label2Score.keySet()) {
+            Double yScore = labelScore.get(label);
+            Double xScore = this.label2Score.get(label);
+            Double totalScore = xScore + yScore;
+            if (totalScore > maxScore) {
+                maxScore = totalScore;
+                maxLabel = label;
+            }
+        }
+        return maxLabel;
+    }
+
+}
