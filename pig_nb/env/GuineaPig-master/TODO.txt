@@ -1,0 +1,75 @@
+TODO - priorities
+
+FUNCTIONALITY
+
+ - add getArgvParams(required="x y z", optional="w x y")
+ - add any hadoop options: 
+ -- note defs and jobconf, "-D x=y", "-jobconf x=y", are different from options like "-cmdEnv x=y"
+ -- also note: tasks contain steps, steps point back to views, so tasks can collect options from there
+ -- probably the right approach: 
+ ---- have dict-of-dicts indexed by 'D', 'jobconf', 'cmdEnv'
+ ---- have have HadoopCompiler merge/override planner-level defaults for the dict-of-dicts with task-level ones
+ ---- have planner options go by: --opts D.map.reduce.tasks:20,...
+     
+ - option(storedIn=FILE) - so you can retrieve and store work on s3
+ - add Stream(view1, through='shell command', shipping=[f1,..,fk])
+ - add StreamingMapReduce(view1, mapper='shell command', reducer='shell command', combiner='shell command', shipping=[f1,..,fk]) 
+ - add user-defined Reuse(FILE) ? (why do I want this again?)
+
+ - gpextras, for debugging:
+ -- PPrint?
+ -- Wrap?
+ -- Describe?
+ -- Illustrate?
+
+ - efficiency
+ -- combiners: add combiner as combiningTo=.. option of Group.  
+ -- compression -jobconf mapred.output.compress=true -jobconf mapred.output.compression.codec=org.apache.hadoop.io.compress.GzipCode
+ -- hadoop options (parallel, hopts, ...)
+
+ - cleanup
+ -- standardize view.by argument
+ -- clean up.gpmo and other tmp files? could do this via analysis at the AbstractMapReduceTask lst level
+ -- log created views so you can continue with --reuse `cat foo.log|grep ^created|cut -f2`
+ -- maybe add --config logging:warn,...
+
+DOCS:
+ - some longer examples for the tutorial (phirl-naive?)
+ - document planner.ship, planner.setEvaluator
+
+TODO - MAJOR
+
+- a GPig.registerCompiler('key',factoryClass), for adding new targets other than hadoop?
+ - compiler for marime.py map-reducer with ramdisks (note: diskutil erasevolume HFS+ 'RAMDisk' `hdiutil attach -nomount ram://10315776`,
+   size is in 2048-byte blocks)
+
+- multithreading ideas
+
+  1. for CPU intensive steps, include multithreaded ReplaceEach and Flatten ops,
+     which sets up a work queue, and for each row, adds a task, and
+     removes any completed tasks.
+
+  2. add another compiler, which generates marime/mime.py steps.
+
+  3. Implement: marime mr -m MAP -r RED -i IN -o OUT -k K 
+           and: marime putsplit -i IN -o OUT -k K
+	        marime getmerge -i IN -o OUT
+  where in and out are ramdisk directories
+
+  map setup if there are J files in I:
+    K queues, Qi for shard i - ie {k,v : H(k)%K == i}
+    J processes Pj, each will run 'MAP < in/shard.j | ...' -- or could use threads (subprocesses would be more modular)
+    J threads to read from Pj.stdout and route (k,v) to appropriate Qi
+    K threads, each to process inputs from one queue, into a shardBuffer
+
+  when all map processes are done:
+    K subprocesses, Ri, to run '... | RED > out/shard.k' -- or could use threads (subprocesses more modular)
+    K threads to print from the shardBuffer to Ri
+
+ - DESCRIBE(...) - could be just a pretty_print?
+
+ - ILLUSTRATE(view,[outputs]) - using definition of view, select the
+   inputs from the innerviews that produce those outputs.  Then, do that
+   recursively to get a test case. 
+
+
