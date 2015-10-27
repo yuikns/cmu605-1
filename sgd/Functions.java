@@ -4,18 +4,18 @@ public class Functions {
 
     // tokenize doc into words
     public static List<String> tokenizeDoc(String cur_doc) {
-        List<String> result = new ArrayList<String>(); 
+        List<String> result = new ArrayList<String>();
         String[] words = cur_doc.split("\\s+");
-        
+
         for (int i = 0; i < words.length; i++) {
             if (i == 0) {
-                result.add(words[i])   
+                result.add(words[i]);
             } else {
                 words[i] = words[i].replaceAll("\\W", "");
                 if (words[i].length() > 0) result.add(words[i]);
             }
-        } 
-       return result; 
+        }
+       return result;
     }
 
     // get all labels
@@ -42,15 +42,23 @@ public class Functions {
 
     // transfer label word to label set
     public static Set<String> transLabel(String input) {
-        Set<String> result = new HashSet<String>(); 
+        Set<String> result = new HashSet<String>();
         String[] labels = input.split(",");
-        
+
         for (String label : labels) {
-            result.add(label);    
+            result.add(label);
         }
-        
+
         return result;
     }
 
-    
+    // special sigmoid
+    public static double sigmoid(double score) {
+        double overflow = 20;
+        if (score > overflow) score = overflow;
+        else if (score < -overflow) score = -overflow;
+        double exp = Math.exp(score);
+        return exp/(1+exp);
+    }
+
 }
