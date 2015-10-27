@@ -103,7 +103,7 @@ public class LR {
                         int id = tokens.get(i).hashCode() % N;
                         if (id < 0) id += N;
                         String key = label + String.valueOf(id);
-                        p += B.get(key);
+                        if (B.containsKey(key)) p += B.get(key);
                     }
                     p = Functions.sigmoid(p);
                     if (label.equals("pt")) {
