@@ -107,9 +107,10 @@ public class LR {
                     }
                     p = Functions.sigmoid(p);
                     if (label.equals("pt")) {
-                        sb.append(p);
+                        //sb.append(p);
+                        sb.append(String.format("%8.8f", p));
                     } else {
-                        sb.append(p);
+                        sb.append(String.format("%8.8f", p));
                         sb.append(",");
                     }
                 }
