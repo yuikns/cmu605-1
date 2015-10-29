@@ -4,9 +4,7 @@ JFLAGS = -encoding UTF-8
 .java.class:
 	$(JC) $(JFLAGS) $*.java
 
-SOURCE_FILES = \
-	Functions.java \
-	LR.java
+SOURCE_FILES = *.java 
 
 default: classes
 
