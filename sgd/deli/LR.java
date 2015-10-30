@@ -10,10 +10,7 @@ public class LR {
          * 2 is the mu, 3 is the max iteration
          * 4 is the training size, 5 is the filename
          */
-        if (args.length != 6) {
-            System.out.println("Input 6 arguments!");
-        }
-        int N = Integer.parseInt(args[0]);
+        int N = Integer.parseInt(args[0])/11;
         double lambda = Double.parseDouble(args[1]);
         double mu = Double.parseDouble(args[2]);
         int iter_num = Integer.parseInt(args[3]);
@@ -50,7 +47,8 @@ public class LR {
                         for (int i = 1; i < tokens.size(); i++) {
                             int id = tokens.get(i).hashCode() % N;
                             if (id < 0) id += N;
-                            String key = label + String.valueOf(id);
+                            //String key = label + String.valueOf(id);
+                            String key = label + id;
                             if (B.containsKey(key)) p += B.get(key);
                         }
                         p = Functions.sigmoid(p);
@@ -59,7 +57,7 @@ public class LR {
                         for (int i = 1; i < tokens.size(); i++) {
                             int id = tokens.get(i).hashCode() % N;
                             if (id < 0) id += N;
-                            String key = label + String.valueOf(id);
+                            String key = label + id;
                             // test the key 
                             if (!A.containsKey(key)) A.put(key, 0);
                             if (!B.containsKey(key)) B.put(key, 0.0);
@@ -93,7 +91,6 @@ public class LR {
                     new BufferedReader(new FileReader(args[5]));
             while (null != (readline = test_file.readLine())) {
                 List<String> tokens = Functions.tokenizeDoc(readline);
-                Set<String> file_labels = Functions.transLabel(tokens.get(0));
                 StringBuilder sb = new StringBuilder();
                 for (String label : all_labels) {
                     sb.append(label);
@@ -102,7 +99,8 @@ public class LR {
                     for (int i = 1; i < tokens.size(); i++) {
                         int id = tokens.get(i).hashCode() % N;
                         if (id < 0) id += N;
-                        String key = label + String.valueOf(id);
+                        //String key = label + String.valueOf(id);
+                        String key = label + id;
                         if (B.containsKey(key)) p += B.get(key);
                     }
                     p = Functions.sigmoid(p);
