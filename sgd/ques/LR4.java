@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 
-public class LR {
+public class LR4 {
 
     public static void main(String[] args) {
         /*
@@ -23,15 +23,20 @@ public class LR {
         Map<String, Integer> A = new HashMap<String, Integer>();
         Map<String, Double> B = new HashMap<String, Double>();
         List<String> all_labels = Functions.getAllLabels();
-
+        
+        double thres = 50.0;
+        int t = 0;
         try {
             BufferedReader br =
                     new BufferedReader(new InputStreamReader(System.in));
             String readline;
             int k = 0;
+            double LCL = 0.0;
+            double pre_LCL = 0.0;
 
             /* Training */
-            for (int t = 1; t <= iter_num; t++) {
+            while (true) {
+                t ++;
                 // k is the clk, reset clk for every new iteration
                 k = 0;
                 double temp_lambda = lambda / ((double)(t*t));
@@ -54,6 +59,8 @@ public class LR {
                             if (B.containsKey(key)) p += B.get(key);
                         }
                         p = Functions.sigmoid(p);
+                        if (y > 0.5) LCL += Math.log(p);
+                        else LCL += Math.log(1-p);
 
                         // then update parameters
                         for (int i = 1; i < tokens.size(); i++) {
@@ -85,19 +92,28 @@ public class LR {
                     B.put(key, fensu);
                 }
                 A.clear();
+
+                System.out.println("Iter " + t + ", LCL  " + LCL);  
+                if (LCL - pre_LCL <= thres) {
+                    break;
+                } else {
+                    pre_LCL = LCL;
+                } 
+            
             } //finish outer for, for all the iter
-
-
+            
             /* Test*/
             BufferedReader test_file =
                     new BufferedReader(new FileReader(args[5]));
+            int corre_num = 0;
+            int total_num = 0;
+            
             while (null != (readline = test_file.readLine())) {
+                total_num += 14;
                 List<String> tokens = Functions.tokenizeDoc(readline);
                 Set<String> file_labels = Functions.transLabel(tokens.get(0));
-                StringBuilder sb = new StringBuilder();
+                
                 for (String label : all_labels) {
-                    sb.append(label);
-                    sb.append("\t");
                     double p = 0.0;
                     for (int i = 1; i < tokens.size(); i++) {
                         int id = tokens.get(i).hashCode() % N;
@@ -106,18 +122,14 @@ public class LR {
                         if (B.containsKey(key)) p += B.get(key);
                     }
                     p = Functions.sigmoid(p);
-                    if (label.equals("pt")) {
-                        //sb.append(p);
-                        sb.append(String.format("%8.8f", p));
-                    } else {
-                        sb.append(String.format("%8.8f", p));
-                        sb.append(",");
-                    }
+                    if (p > 0.5 &&  file_labels.contains(label)) corre_num += 1;
+                    if (p < 0.5 && !file_labels.contains(label)) corre_num += 1;
                 }
-                System.out.println(sb.toString());
             }
-
             test_file.close();
+            double prec = (double)corre_num / (double)total_num;
+            System.out.println("the result is " + prec);
+        
         } catch(IOException e) {
             e.printStackTrace();
         }
