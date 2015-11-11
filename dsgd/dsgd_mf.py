@@ -15,7 +15,8 @@ PLEASE_CODE_ME = -1
 
 def map_line(line):
     # TODO: map the line to a triple (word id, doc id, tfidf)
-    return 0, 0, 0.0
+    word_id, doc_id, tfidf = line.strip().split(",")
+    return (word_id, doc_id, tfidf)
 
 
 def calculate_loss(pred_matrix, true_matrix):
@@ -106,7 +107,9 @@ if __name__ == '__main__':
     sc = pyspark.SparkContext(conf=conf)
 
     # TODO: measure time starting here
-    start_time = PLEASE_CODE_ME
+    #start_time = PLEASE_CODE_ME
+    #start_time = time.time()
+    start_time = sc.startTime
 
     # get tfidf_scores RDD from data
     # Note: you need to implement the function 'map_line' above.
@@ -119,11 +122,15 @@ if __name__ == '__main__':
         tfidf_scores = rating_files.flatMap(
             lambda pair: map_line(pair[1]))
 
-
+    
+    print len(tfidf_scores.collect())
+    sc.stop()
+    """
     # TODO: get the max_word_id and max_doc_id.
     # this can be coded in 1-2 lines, or 10-20 lines, depending on your approach...
     max_word_id = PLEASE_CODE_ME
     max_doc_id = PLEASE_CODE_ME
+
 
     # build W and H as numpy matrices, initialized randomly with ]0,1] values
     w_mat = rand(max_word_id + 1, num_factors) + TINY_EPS
@@ -200,3 +207,5 @@ if __name__ == '__main__':
     sc.stop()
 
     # TODO: print w_mat and h_mat to outputW_filepath and outputH_filepath
+    
+    """
