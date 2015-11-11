@@ -15,8 +15,8 @@ PLEASE_CODE_ME = -1
 
 def map_line(line):
     # TODO: map the line to a triple (word id, doc id, tfidf)
-    word_id, doc_id, tfidf = line.strip().split(",")
-    return (word_id, doc_id, tfidf)
+    word, doc, score = line.strip().split(",")
+    return (int(word), int(doc), float(score))
 
 
 def calculate_loss(pred_matrix, true_matrix):
@@ -123,15 +123,20 @@ if __name__ == '__main__':
             lambda pair: map_line(pair[1]))
 
     
-    print len(tfidf_scores.collect())
-    sc.stop()
-    """
     # TODO: get the max_word_id and max_doc_id.
     # this can be coded in 1-2 lines, or 10-20 lines, depending on your approach...
-    max_word_id = PLEASE_CODE_ME
-    max_doc_id = PLEASE_CODE_ME
+    max_word_id = tfidf_scores.map(lambda x : x[0]). \
+        reduce(lambda a,b : a if a > b else b)
+    max_doc_id = tfidf_scores.map(lambda x : x[1]). \
+        reduce(lambda a,b : a if a > b else b)
 
-
+    print "!!!!" + str(max_word_id)
+    print "!!!!" + str(max_doc_id)
+    
+    sc.stop()
+    """
+    
+    
     # build W and H as numpy matrices, initialized randomly with ]0,1] values
     w_mat = rand(max_word_id + 1, num_factors) + TINY_EPS
     h_mat = rand(max_doc_id + 1, num_factors) + TINY_EPS
