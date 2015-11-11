@@ -31,12 +31,15 @@ def calculate_loss(pred_matrix, true_matrix):
     print('loss: %f, RMSE: %f' % (error, rmse))
 
 
-def get_worker_id_for_position(word_id, doc_id):
+def get_worker_id_for_position(doc_id):
     # TODO: code this. You should be able to determine the worker id from the word id or doc id,
     # or a combination of both. You might also need strata_row_size and/or strata_col_size
     # Suggestion is to return either a column block index or a row block index
     # Assign columns or rows to specific workers
-    return PLEASE_CODE_ME
+    
+    # do we need to pass the strata_col_size here?
+
+    return int(doc_id/strata_col_size)
 
 
 def blockify_matrix(worker_id, partition):
@@ -122,20 +125,16 @@ if __name__ == '__main__':
         tfidf_scores = rating_files.flatMap(
             lambda pair: map_line(pair[1]))
 
-    
+    # to cache the tfidf_scores for speed
+    #tfidf_scores.cache()
+    #tfidf_scores.count()
+
     # TODO: get the max_word_id and max_doc_id.
-    # this can be coded in 1-2 lines, or 10-20 lines, depending on your approach...
+    # this can be coded in 1-2 lines, or 10-20 lines, depending on your approach
     max_word_id = tfidf_scores.map(lambda x : x[0]). \
         reduce(lambda a,b : a if a > b else b)
     max_doc_id = tfidf_scores.map(lambda x : x[1]). \
         reduce(lambda a,b : a if a > b else b)
-
-    print "!!!!" + str(max_word_id)
-    print "!!!!" + str(max_doc_id)
-    
-    sc.stop()
-    """
-    
     
     # build W and H as numpy matrices, initialized randomly with ]0,1] values
     w_mat = rand(max_word_id + 1, num_factors) + TINY_EPS
@@ -144,15 +143,19 @@ if __name__ == '__main__':
     h_mat = h_mat.astype(np.float32, copy=False)
 
     # TODO: determine strata block size.
-    strata_col_size = PLEASE_CODE_ME
-    strata_row_size = PLEASE_CODE_ME
+    # the block size is related to the block nums, how to choose block nums?
+    # we could simply define the block num as the work num
+    block_num = num_workers
+    strata_col_size = (max_doc_id+1)/block_num
+    strata_row_size = (max_word_id+1)/block_num 
     strata_col_size_bc = sc.broadcast(strata_col_size)
     strata_row_size_bc = sc.broadcast(strata_row_size)
 
+    
     # TODO: map scores to (worker id, (word id, doc id, tf idf score) (implement get_worker_id_for_position)
     # Here we are assigning each cell of the matrix to a worker
     tfidf_scores = tfidf_scores.map(lambda score: (
-        get_worker_id_for_position(score[0], score[1]),
+        get_worker_id_for_position(score[1]),
         (
             score[0], # word id
             score[1], # doc id
@@ -166,7 +169,9 @@ if __name__ == '__main__':
     )).partitionBy(num_workers) \
       .mapPartitionsWithIndex(blockify_matrix, preservesPartitioning=True) \
       .cache()
-
+    
+    sc.stop()
+    """
     # finally, run sgd. Each iteration should update one strata.
     num_old_updates = 0
     for current_iteration in range(num_iterations):
