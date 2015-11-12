@@ -25,9 +25,14 @@ def calculate_loss(pred_matrix, true_matrix):
     # Note: true_matrix is the result of ratings.collect()
     error = 0.0
     num_nonzero_entries = 1
+    
+    for t, s in true_matrix:
+        for word_id, doc_id, score in s:
+            num_nonzero_entries += 1
+            error += (pred_matrix[word_id][doc_id] - socre) ** 2
 
     # TODO: calculate RMSE from error and num_nonzero_entries
-    rmse = PLEASE_CODE_ME
+    rmse = 0.5 * (error/num_nonzero_entries)
     print('loss: %f, RMSE: %f' % (error, rmse))
 
 
@@ -59,8 +64,8 @@ def blockify_matrix(worker_id, partition):
     strata_col_size = strata_col_size_bc.value
     strata_row_size = strata_row_size_bc.value
     for worker_idx, tup in partition:
-        col_block_index = int(tup[0]/strata_col_size)
-        row_block_index = int(tup[1]/strata_row_size)
+        row_block_index = int(tup[0]/strata_col_size)
+        col_block_index = int(tup[1]/strata_row_size)
         blocks[(row_block_index, col_block_index)].append(tup)
     for item in blocks.items():
         yield item
@@ -69,7 +74,9 @@ def blockify_matrix(worker_id, partition):
 def filter_block_for_iteration(num_iteration, col_block_index, row_block_index):
     # TODO: implement me! You might also need the number of workers here
     iter_index = int(num_iteration/block_num)
-    strata_index = int( (col_block_index - row_block_index)/block_num )
+    strata_index = col_block_index - row_block_index
+    if strata_index < 0:
+        strata_index += block_num
     return strata_index == col_block_index
 
 
@@ -81,15 +88,19 @@ def perform_sgd(block):
 
     # TODO: determine row_start and col_start based on row_block, col_block and
     # strata_row_size and strata_col_size.
-    row_start = PLEASE_CODE_ME # use col_block and row_block to transform to real row and col indexes
-    col_start = PLEASE_CODE_ME # use col_block and row_block to transform to real row and col indexes
+    row_start = row_block * srs # use col_block and row_block to transform to real row and col indexes
+    col_start = col_block * scs # use col_block and row_block to transform to real row and col indexes
     w_mat_block = w_mat_bc.value[row_start:row_start + srs, :]
     h_mat_block = h_mat_bc.value[col_start:col_start + scs, :]
     # Note: you need to use block indexes for w_mat_block and h_mat_block to access w_mat_block and h_mat_block
+    
+    # we would need beta here 
+    beta = beta_value_bc.value
 
     num_updated = 0
     for word_id, doc_id, tfidf_score in tuples:
-        num_updated += PLEASE_CODE_ME
+        step = max(MIN_EPS, (100 + num_old_updates + num_updated) ** (-beta))
+        
         # TODO: update w_mat_block, h_mat_block
         # TODO: update num_updated
 
@@ -101,6 +112,19 @@ def perform_sgd(block):
         # your learning rate is too small
 
         # Note: You can use num_old_updates here
+        num_updated += 1
+        
+        w_mat_block_part = np.copy(w_mat_block[word_id - row_start])
+        h_mat_block_part = np.copy(h_mat_block[doc_id - col_start])
+
+        temp_product = -2 * ( tfidf_score - \
+                              np.inner(w_mat_block_part, h_mat_block_part))
+
+        # update part of the w_mat_block and h_mat_block
+        w_mat_block[word_id - row_start] = w_mat_block_part - \
+            step * temp_product * h_mat_block_part
+        h_mat_block[word_id - row_start] = h_mat_block_part - \
+            step * temp_product * w_mat_block_part
 
     return row_block, col_block, w_mat_block, h_mat_block, num_updated
 
@@ -119,8 +143,7 @@ if __name__ == '__main__':
 
     # TODO: measure time starting here
     #start_time = PLEASE_CODE_ME
-    #start_time = time.time()
-    start_time = sc.startTime
+    start_time = time.time()
 
     # get tfidf_scores RDD from data
     # Note: you need to implement the function 'map_line' above.
@@ -206,19 +229,23 @@ if __name__ == '__main__':
             # TODO: update w_mat and h_mat matrices
 
             # map block_row block_col to real indexes (words and doc ids)
-            w_update_start = PLEASE_CODE_ME
-            w_update_end = PLEASE_CODE_ME
+            w_update_start = block_row * strata_row_size 
+            w_update_end = (block_row + 1) * strata_row_size
             w_mat[w_update_start:w_update_end, :] = updated_w
 
-            h_update_start = PLEASE_CODE_ME
-            h_update_end = PLEASE_CODE_ME
+            h_update_start = block_col * strata_col_size
+            h_update_end = (block_col + 1) * strata_col_size
             h_mat[h_update_start:h_update_end, :] = updated_h
 
-            num_old_updates += PLEASE_CODE_ME
+            num_old_updates += num_updates
 
         # TODO: you may want to call calculate_loss here for your experiments
 
     # TODO: print running time
+
+    # after training, get the running time
+    end_time = time.time()
+    print "running time is %s s!" %(str(end_time - start_time))
 
     calculate_loss(np.dot(w_mat, h_mat.transpose()), tfidf_scores.collect())
 
@@ -226,5 +253,37 @@ if __name__ == '__main__':
     sc.stop()
 
     # TODO: print w_mat and h_mat to outputW_filepath and outputH_filepath
+    w_file = open(outputW_filepath, 'w')
+    for i in range(w_mat.shape[0]):
+        w_file.write(str(w_mat[i][0]))
+        for j in range(1, w_mat.shape[1]):
+            w_file.write(',' + str(w_mat[i][j]))
+        w_file.write('\n')
+    w_file.close()
     
-    """
+    h_file = open(outputH_filepath, 'w')
+    for i in range(h_mat.shape[1]):
+        h_file.write(str(h_mat[0][i]))
+        for j in xrange(1, h_mat.shape[0]):
+            h_file.write(',' + str(h_mat[j][i]))
+        h_file.write('\n')
+    h_file.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
