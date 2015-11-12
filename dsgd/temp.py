@@ -233,7 +233,7 @@ if __name__ == '__main__':
             f.write('\n')
     with open(outputH_filepath, 'w') as f:
         for i in range(h_mat.shape[1]):
-            f.write(str(w_mat[0][i]))
+            f.write(str(h_mat[0][i]))
             for j in xrange(1, h_mat.shape[0]):
                 f.write(',' + str(h_mat[j][i]))
             f.write('\n')
