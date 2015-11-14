@@ -44,7 +44,7 @@ def get_worker_id_for_position(word_id, doc_id):
     
     # do we need to pass the strata_col_size here?
     strata_col_size = strata_col_size_bc.value
-    return int(doc_id/strata_col_size)
+    return doc_id / strata_col_size
 
 
 def blockify_matrix(worker_id, partition):
@@ -64,8 +64,8 @@ def blockify_matrix(worker_id, partition):
     strata_col_size = strata_col_size_bc.value
     strata_row_size = strata_row_size_bc.value
     for worker_idx, tup in partition:
-        row_block_index = int(tup[0]/strata_col_size)
-        col_block_index = int(tup[1]/strata_row_size)
+        row_block_index = tup[0]/strata_row_size
+        col_block_index = tup[1]/strata_col_size
         blocks[(row_block_index, col_block_index)].append(tup)
     for item in blocks.items():
         yield item
@@ -73,12 +73,14 @@ def blockify_matrix(worker_id, partition):
 
 def filter_block_for_iteration(block_num, num_iteration, row_block_index, col_block_index):
     # TODO: implement me! You might also need the number of workers here
-    iter_index = int(num_iteration/block_num)
-    strata_index = col_block_index - row_block_index
-    if strata_index < 0:
-        strata_index += block_num
-    return strata_index == col_block_index
-    #return (col_block_index + num_iterations) % block_num == 0
+    
+    #iter_index = int(num_iteration/block_num)
+    #strata_index = col_block_index - row_block_index
+    #if strata_index < 0:
+    #    strata_index += block_num
+    #return strata_index == col_block_index
+    
+    return (col_block_index + num_iterations) % block_num == 0
 
 def perform_sgd(block):
     (row_block, col_block), tuples = block
@@ -96,6 +98,7 @@ def perform_sgd(block):
     
     # we would need beta here 
     beta = beta_value_bc.value
+    num_old_updates = num_old_updates_bc.value
 
     num_updated = 0
     for word_id, doc_id, tfidf_score in tuples:
@@ -123,7 +126,7 @@ def perform_sgd(block):
         # update part of the w_mat_block and h_mat_block
         w_mat_block[word_id - row_start] = w_mat_block_part - \
             step * temp_product * h_mat_block_part
-        h_mat_block[word_id - row_start] = h_mat_block_part - \
+        h_mat_block[doc_id - col_start] = h_mat_block_part - \
             step * temp_product * w_mat_block_part
 
     return row_block, col_block, w_mat_block, h_mat_block, num_updated
@@ -177,8 +180,8 @@ if __name__ == '__main__':
     # the block size is related to the block nums, how to choose block nums?
     # we could simply define the block num as the work num
     block_num = num_workers
-    strata_col_size = (max_doc_id+1)/block_num
-    strata_row_size = (max_word_id+1)/block_num 
+    strata_col_size = (max_doc_id+1)/block_num + 1
+    strata_row_size = (max_word_id+1)/block_num + 1
     strata_col_size_bc = sc.broadcast(strata_col_size)
     strata_row_size_bc = sc.broadcast(strata_row_size)
     
@@ -208,7 +211,9 @@ if __name__ == '__main__':
     num_old_updates = 0
     for current_iteration in range(num_iterations):
         # perform updates for one strata in parallel
-
+        # update old updates
+        num_old_updates_bc = sc.broadcast(num_old_updates)
+        
         # broadcast factor matrices to workers
         w_mat_bc = sc.broadcast(w_mat)
         h_mat_bc = sc.broadcast(h_mat)
@@ -251,6 +256,12 @@ if __name__ == '__main__':
 
     # Stop spark
     sc.stop()
+   
+    # add for debug
+    print len(w_mat)
+    print len(w_mat[0])
+    print len(h_mat)
+    print len(h_mat[0])
 
     # TODO: print w_mat and h_mat to outputW_filepath and outputH_filepath
     w_file = open(outputW_filepath, 'w')
@@ -268,7 +279,6 @@ if __name__ == '__main__':
             h_file.write(',' + str(h_mat[j][i]))
         h_file.write('\n')
     h_file.close()
-
 
 
 
