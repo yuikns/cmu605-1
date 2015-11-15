@@ -31,7 +31,7 @@ def calculate_loss(pred_matrix, true_matrix):
             error += (pred_matrix[word_id][doc_id] - score) ** 2
 
     # TODO: calculate RMSE from error and num_nonzero_entries
-    rmse = 0.5 * (error/num_nonzero_entries)
+    rmse = (error/num_nonzero_entries) ** 0.5
     print('loss: %f, RMSE: %f' % (error, rmse))
 
 
