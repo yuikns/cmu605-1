@@ -1,2 +1,2 @@
-spark-submit --driver-memory 2G dsgd_mf.py 10 5 10 0.95 ./data/transfer.csv ./data/w.csv ./data/h.csv
-#spark-submit --driver-memory 2G temp.py 10 5 10 0.95 ./data/transfer.csv ./data/w.csv ./data/h.csv
+N=$1;
+spark-submit --driver-memory 4G dsgd_mf.py 20 10 50 $N ./data/RCV1.small_train.csv ./data/w3.csv ./data/h3.csv
