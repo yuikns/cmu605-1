@@ -144,7 +144,7 @@ if __name__ == '__main__':
     # this can be coded in 1-2 lines, or 10-20 lines, depending on your approach...
     max_word_id = tfidf_scores.max(lambda x: x[0])[0]
     max_doc_id = tfidf_scores.max(lambda x: x[1])[1]
-
+    
     # build W and H as numpy matrices, initialized randomly with ]0,1] values
     w_mat = rand(max_word_id + 1, num_factors) + TINY_EPS
     h_mat = rand(max_doc_id + 1, num_factors) + TINY_EPS
@@ -224,6 +224,12 @@ if __name__ == '__main__':
     # Stop spark
     sc.stop()
 
+    # add for debug
+    print len(w_mat)
+    print len(w_mat[0])
+    print len(h_mat)
+    print len(h_mat[0])
+    
     # print w_mat and h_mat to outputW_filepath and outputH_filepath
     with open(outputW_filepath, 'w') as f:
         for i in xrange(w_mat.shape[0]):
@@ -233,7 +239,11 @@ if __name__ == '__main__':
             f.write('\n')
     with open(outputH_filepath, 'w') as f:
         for i in range(h_mat.shape[1]):
-            f.write(str(w_mat[0][i]))
+            f.write(str(h_mat[0][i]))
             for j in xrange(1, h_mat.shape[0]):
                 f.write(',' + str(h_mat[j][i]))
             f.write('\n')
+
+
+
+

@@ -10,7 +10,6 @@ import pyspark
 
 MIN_EPS = 0.005
 TINY_EPS = 0.00001
-PLEASE_CODE_ME = -1
 
 
 def map_line(line):
@@ -258,10 +257,10 @@ if __name__ == '__main__':
     sc.stop()
    
     # add for debug
-    print len(w_mat)
-    print len(w_mat[0])
-    print len(h_mat)
-    print len(h_mat[0])
+    #print len(w_mat)
+    #print len(w_mat[0])
+    #print len(h_mat)
+    #print len(h_mat[0])
 
     # TODO: print w_mat and h_mat to outputW_filepath and outputH_filepath
     w_file = open(outputW_filepath, 'w')
