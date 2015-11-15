@@ -6,7 +6,7 @@
 %\documentstyle[nips14submit_09,times,art10]{article} % For LaTeX 2.09
 
 
-\title{SGD for 10605 15 Fall}
+\title{DSGD for MF on Spark 10605 15 Fall}
 
 
 \author{
@@ -27,112 +27,110 @@ AndrewId: jingyual\\
 \maketitle
 
 
+
 \section{Question 1}
 
-As we can see from the figure, the algorithm would converge at last. The LCL was close in the last several iterations.
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=6cm]{pic/q1.png}
-\end{center}
-\caption{LCL over iterations}
-\end{figure}
+While both algorithms could achieve the goal of Matrix Factorization, we
+realized that DSGD is much more scalable than SVD. With DSGD, we could generate
+stratum with several independent blocks. The computation of each block is
+independent, which makes the algorithm very scalable to run on several cores or
+machines in an elegant parallel way.
+
+
 
 \section{Question 2}
 
-The accuracy curve of the 11 different parameters is:
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=10cm]{pic/q21.png}
-\end{center}
-\caption{Accruracy over mu, whole range}
-\end{figure}
+\subsection{Question2.1}
+Matrix Factorization could be seen as a kind of ``topic model''. Basically, we
+could see that the factor number is the chosen topic number. For the W matrix,
+we could see it as the importance of doc over topics. For the H matrix, we could
+see it as the importance of topic over words.
 
-We could see the general trend of the performances is first arising with the x,
-then decreasing. To see it in details, we can draw a figure in small range:
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=10cm]{pic/q22.png}
-\end{center}
-\caption{Accuracy over mu, small range}
-\end{figure}
-
-We could find that the best point is when mu is 0.001. I think this result is
-very reasonable. As we all know, the mu is used to do regularization. If the
-mu is too small, then the model would be overfitting, which would lower the
-performances. On the other hand, if mu is too big, then many parameters would
-vanish towards zero, which would make the model too ``simple'', and also lower
-the accuracy.
+\subsection{Question2.2}
+As we mentioned above, the H matrix could be explained as the importance of
+topic over words. Therefore, if we want to find the top k words in a topic, we
+could use the H matrix to do it. We could set the ith row of a H matrix, and then find
+the top k words in the ith row. These top k words is the top k words of topic i.
 
 
 
 \section{Question 3}
+I think holding on all other conditions, the Spark implementation should be
+faster than the Hadoop implementation.
 
-The result is as follows, we could see that the best D is the $10^5$.
+First of all, Spark is lazy evaluation, which uses the DAG and wait to execute
+after accumulating series of transformations.
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=10cm]{pic/q3.png}
-\end{center}
-\caption{Accuracy over D}
-\end{figure}
-
-Besides, we could see that the trend of the accuracy curve is very reasonable.
-We could see that the accuracy is improving with the increasement of x. However,
-the trend is becomming more and more slow. When x is small, the increasing of
-feature space would bring much performances improvment. When x is big,
-increasing the feature space would not be very effective. This is reasonable,
-and proves that hash tricks is an reasonable way for large datasets.
+Besides, the MapReduce framework is not suitable for DSGD-MF. Bascially, we know
+that MapReduce is based on stream and sort, which is not suitable for this
+iterative steps.
 
 
 
 \section{Question 4}
 
-We can use different threshold and got different iterations. The specific result
-is here:
 
-First, threshold: 100, running time: 26.0865, accuracy: 0.670113
+\subsection{Question 4.1}
+The trend is:
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=10cm]{pic/q41.png}
+\end{center}
+\caption{Error over iteration}
+\end{figure}
 
-Second, threshold: 50, running time: 39.692, accuracy: 0.813421
+We could see at first, with the increase of iterations, the reconstruction error
+would decrease. Then it would slowly increase with more iterations.
 
-Third, using SGD, running for 20 iters, time: 29.548, accuracy 0.812102
 
-As we can see here, if we set the threshold to a very small value, then the
-program would take more time to converge, and got a better performances.
+\subsection{Question 4.2}
+The trend is:
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=10cm]{pic/q42.png}
+\end{center}
+\caption{Error over worker}
+\end{figure}
+
+We could see that as the increase of workers, the error would increase. This is
+quite reasonable because with increase of workers, the error of approximation
+like number of iterations would be more influential.
+
+\subsection{Question 4.3}
+The trend is:
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=10cm]{pic/q43.png}
+\end{center}
+\caption{Error over factors}
+\end{figure}
+
+We could see at first, with the increase of topics or factors, the error would
+decrease. Then with the increase of factors after 20, the error would increase
+very fast. This is because we set too many topics to the dataset.
+
+\subsection{Question 4.4}
+The trend is:
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=10cm]{pic/q44.png}
+\end{center}
+\caption{Error over beta}
+\end{figure}
+
+We could see the trend is at first decrease, and then is stable, not sensitive
+to the increase of beta
 
 
 
 \section{Question 5}
 
-No, we can not guarantee that arriving to the same W and H everytime. This is
-because for the matrix factorization task, we just random initilization and
-then doing the updates in every iteration. What's more, the iteration number
-was not sure to guarantee that the algorithm would converge to the same point.
+I received helps from Chenran Li, whose AndrewId is chenranl. He told me how to
+design the blockify matrix function and how to understand the perform sgd
+function.
 
-
-
-\section{Question 6}
-
-The (b) is not valid for DSGD, because it does not satisfy the requirements of
-the strata for the DSGD algorithms. In the DSGD algorithms, the set of blocks,
-the stratum, should not overlap. But in (b), the blocks are overlapped.
-
-
-
-\section{Question 7}
-
-The (d) strata should only achieve a suboptimal from the point of
-view of parallelism. This is because in DSGD, we need to group the data. We should
-repeat that untill all blocks are covered. Otherwise, we are not taking the whole
-dataset. Therefore, losing a block of data would cause a suboptimal of the dataset from the point
-of view of parallelism.
-
-
-
-\section{Question 8}
-
-I did not receive helps from others, and did not give direct helps to others.
 
 \end{document}
