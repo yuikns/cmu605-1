@@ -6,7 +6,7 @@ JFLAGS = -encoding UTF-8
 
 SOURCE_FILES = \
 	Functions.java \
-	LR.java
+	ApproxPageRank.java
 
 default: classes
 
