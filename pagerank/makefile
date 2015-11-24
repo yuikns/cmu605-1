@@ -6,7 +6,8 @@ JFLAGS = -encoding UTF-8
 
 SOURCE_FILES = \
 	Functions.java \
-	ApproxPageRank.java
+	ApproxPageRank.java \
+	Test.java
 
 default: classes
 
