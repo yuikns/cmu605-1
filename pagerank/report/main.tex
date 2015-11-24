@@ -6,7 +6,7 @@
 %\documentstyle[nips14submit_09,times,art10]{article} % For LaTeX 2.09
 
 
-\title{DSGD for MF on Spark 10605 15 Fall}
+\title{Efficient Approximate PageRank 10605 15 Fall}
 
 
 \author{
@@ -29,45 +29,63 @@ AndrewId: jingyual\\
 
 
 \section{Question 1}
+The probability that the k-th point is the last to be eaten is $\frac{1}{n}$.
 
+\begin{equation}
+p (k \ is \ the \ last \ to \ be \ eaten) = \frac{1}{n}
+\end{equation}
 
-While both algorithms could achieve the goal of Matrix Factorization, we
-realized that DSGD is much more scalable than SVD. With DSGD, we could generate
-stratum with several independent blocks. The computation of each block is
-independent, which makes the algorithm very scalable to run on several cores or
-machines in an elegant parallel way.
+Before k is eaten, we must first eat the k-1 or k+1. Consider the symmetry, we
+can asuume that it is the k-1 that is eaten before k. The k is the last means
+that the k+1 must be eaten already before k. This could happen if the random
+walk passes cloclwise from k-1 to k+1 before eating k.
 
+The probability of eats k-1 before k+1 is $\frac{1}{2}$, because the graph is
+symmetric.  To conclude, we could see this result is reasonable. The overall
+probability of any point be the last one:
+
+\begin{equation}
+\sum_k^n p(k \ is \ the \ last \ one) = 1
+\end{equation}
 
 
 \section{Question 2}
+We could use several different criteria to evaluate a static-graph sampling
+algorithms:
 
+In-degree and out-degree distribution.
 
-\subsection{Question2.1}
-Matrix Factorization could be seen as a kind of ``topic model''. Basically, we
-could see that the factor number is the chosen topic number. For the W matrix,
-we could see it as the importance of doc over topics. For the H matrix, we could
-see it as the importance of topic over words.
+The distribution of sizes of weakly connected and strongly connected components.
 
+Hot-plot: The number P (h) of reachable pairs of nodes at distance or less.
 
-\subsection{Question2.2}
-As we mentioned above, the H matrix could be explained as the importance of
-topic over words. Therefore, if we want to find the top k words in a topic, we
-could use the H matrix to do it. We could set the ith row of a H matrix, and then find
-the top k words in the ith row. These top k words is the top k words of topic i.
+Hot-plot on the largest WCC.
 
+The distribution of the first left singular vector of the graph adjacency matrix
+versus the rank.
+
+The distribution of singular values of the graph adjacency matrix versus the the
+rank.
+
+The distribution of the defined clustering coefficient.
 
 
 \section{Question 3}
-I think holding on all other conditions, the Spark implementation should be
-faster than the Hadoop implementation.
+Place more outlinks from V would not change the PageRank score. Basically, place
+more outlinks would not directly increase the inlinks, therefore, would not
+bring direct increase. On the other hand, the self-reservered flow is not
+changed by the outlink numbers. In conclusion, placing more outlinks would not
+change the PageRank score.
 
-First of all, Spark is lazy evaluation, which uses the DAG and wait to execute
-after accumulating series of transformations.
+Obtain more links to V would increase the PageRank score, since more links to
+the V website, the PageRank score would increase as defined.
 
-Besides, the MapReduce framework is not suitable for DSGD-MF. Bascially, we know
-that MapReduce is based on stream and sort, which is not suitable for this
-iterative steps.
+Split V into two Va and Vb without any links between them and copy all out
+links would not change the PageRank for V. This is because there would not be
+more links to the V. So the PageRank score would not change.
 
+Sybil Attack would increase the PageRank score. Basically, using Sybil Attack
+would add more inlinks to V. This would increase the PageRank score.
 
 
 \section{Question 4}

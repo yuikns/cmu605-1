@@ -8,7 +8,7 @@ public class ApproxPageRank {
         // parse the args
         String inputFile = args[0];
         String seed = args[1];
-        double alpha = Double.parseDouble(args[2]);
+        double alpha = 1.2*Double.parseDouble(args[2]);
         double epsilon = Double.parseDouble(args[3]);
         // init params
         Map<String, Double> p = new HashMap<String, Double>();
@@ -29,9 +29,7 @@ public class ApproxPageRank {
                 while (null != (readline = br.readLine()))  {
                     int tabPos = readline.indexOf('\t');
                     String u = readline.substring(0, tabPos);
-                    if (!r.containsKey(u)) {
-                        continue;
-                    }
+                    if (!r.containsKey(u)) continue;
                     List<String> temp = Functions.tokenizeDoc(readline);
                     int d_u = temp.size() - 1;
                     double r_u = r.get(u);
@@ -45,9 +43,7 @@ public class ApproxPageRank {
                         /* do the push */
                         // first set p_u
                         double p_u = 0;
-                        if (p.containsKey(u)) {
-                            p_u = p.get(u);
-                        }
+                        if (p.containsKey(u)) p_u = p.get(u);
                         // update p
                         p_u += alpha * r_u;
                         p.put(u, p_u);
@@ -61,9 +57,7 @@ public class ApproxPageRank {
                             nei.add(v);
                             // set up v
                             double r_v = 0.0;
-                            if (r.containsKey(v) ) {
-                                r_v = r.get(v);
-                            }
+                            if (r.containsKey(v)) r_v = r.get(v);
                             r.put(v, r_u_new + r_v);
                         }
                         neighbors.put(u, nei);
@@ -76,33 +70,11 @@ public class ApproxPageRank {
         }
 
 
-        /* Compose the new sub-graph */
-        //for (String key : p.keySet()) {
-        //    List<String> nei = neighbors.get(key);
-        //    List<String> temp = new ArrayList<String>();
-        //    for (String str : nei) {
-        //        if (p.keySet().contains(str)) {
-        //            temp.add(str);
-        //        }
-        //    }
-        //    neighbors.put(key, temp);
-        //}
-
-
         /* find the low-conductance subgraph */
         // first sort the decreasing order
         ValueComparator bvc = new ValueComparator(p);
         TreeMap<String, Double> sort_p = new TreeMap<String, Double>(bvc);
         sort_p.putAll(p);
-        //System.out.println("The sorted p size is " + sort_p.size());
-
-        //for (String key : sort_p.keySet()) {
-        //    System.out.println(key);
-        //    System.out.println(p.get(key));
-        //    System.out.println(neighbors.get(key).size());
-        //    System.out.println("----");
-        //}
-
 
         // init subGraph
         Set<String> subGraph = new HashSet<String>();
@@ -117,21 +89,14 @@ public class ApproxPageRank {
             index++;
             if (!key.equals(seed)) {
                 subGraph.add(key);
-                int new_volum = volum;
-                int new_bonds = bonds;
                 for (String nei : neighbors.get(key)) {
-                    new_volum++;
-                    if (subGraph.contains(nei)) {
-                        new_bonds--;
-                    } else {
-                        new_bonds++;
-                    }
+                    volum++;
+                    if (subGraph.contains(nei)) bonds--;
+                    else bonds++;
                 }
-                double new_phi = (double)new_bonds/new_volum;
+                double new_phi = (double)bonds/volum;
                 if (new_phi < phi) {
                     phi = new_phi;
-                    bonds = new_bonds;
-                    volum = new_volum;
                     best_index = index;
                 }
             }
