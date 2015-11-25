@@ -8,7 +8,7 @@ public class ApproxPageRank {
         // parse the args
         String inputFile = args[0];
         String seed = args[1];
-        double alpha = 1.2*Double.parseDouble(args[2]);
+        double alpha = Double.parseDouble(args[2]);
         double epsilon = Double.parseDouble(args[3]);
         // init params
         Map<String, Double> p = new HashMap<String, Double>();
@@ -36,8 +36,6 @@ public class ApproxPageRank {
 
                     // exec pushes if not satisfy
                     if ((r_u/d_u) > epsilon) {
-                        //System.out.println(r_u/d_u);
-                        //if (iter >= 10) break;
                         List<String> nei = new ArrayList<String>();
                         breakFlag = 0;
                         /* do the push */

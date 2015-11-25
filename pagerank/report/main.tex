@@ -92,63 +92,24 @@ would add more inlinks to V. This would increase the PageRank score.
 
 
 \subsection{Question 4.1}
-The trend is:
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=10cm]{pic/q41.png}
+\includegraphics[width=10cm]{pic/result.png}
 \end{center}
-\caption{Error over iteration}
+\caption{Gephi Graphics}
 \end{figure}
-
-We could see at first, with the increase of iterations, the reconstruction error
-would decrease. Then it would slowly increase with more iterations.
-
 
 \subsection{Question 4.2}
-The trend is:
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=10cm]{pic/q42.png}
-\end{center}
-\caption{Error over worker}
-\end{figure}
+To cluster nodes into communities, we could use the ``clustering'' option in the
+``windows'' panel. Or we could use the ``Modularity'' statistic to find
+communities and assign ``cluster label'' to each community.
 
-We could see that as the increase of workers, the error would increase. This is
-quite reasonable because with increase of workers, the error of approximation
-like number of iterations would be more influential.
-
-\subsection{Question 4.3}
-The trend is:
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=10cm]{pic/q43.png}
-\end{center}
-\caption{Error over factors}
-\end{figure}
-
-We could see at first, with the increase of topics or factors, the error would
-decrease. Then with the increase of factors after 20, the error would increase
-very fast. This is because we set too many topics to the dataset.
-
-\subsection{Question 4.4}
-The trend is:
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=10cm]{pic/q44.png}
-\end{center}
-\caption{Error over beta}
-\end{figure}
-
-We could see the trend is at first decrease, and then is stable, not sensitive
-to the increase of beta
-
+To find the authoritative nodes which are influencers in the network, we could
+use the ``Ranking'',``Metrics'', and ``Filter'' options. We could select the
+``Degree Range'' or some other metrics to filter those influencial points.
 
 
 \section{Question 5}
-
-I received helps from Chenran Li, whose AndrewId is chenranl. He told me how to
-design the blockify matrix function and how to understand the perform sgd
-function.
-
+I did not receive or give direct helps to other students.
 
 \end{document}
