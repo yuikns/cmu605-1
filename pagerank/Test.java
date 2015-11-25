@@ -72,13 +72,6 @@ public class Test {
 			reader.close();
 		}
 
-        //System.out.println("The P size is " + P.size());
-
-		//long stopTime = System.currentTimeMillis();
-		//long elapsedTime = stopTime - startTime;
-		//System.out.println("time: " + elapsedTime);
-		//startTime = System.currentTimeMillis();
-
 		// generate subgraph
 		ArrayList<Vertex> subgraph = new ArrayList<Vertex>();
 		BufferedReader reader = new BufferedReader(new FileReader(inputFile));
@@ -114,18 +107,6 @@ public class Test {
 		Collections.sort(subgraph);
 		// apr finished
 
-
-        //System.out.println(seed);
-        //System.out.println(P.get(seed));
-        //System.out.println(seedDegree);
-        //System.out.println("----");
-        //for (int i = 0; i < subgraph.size(); i++) {
-        //    System.out.println(subgraph.get(i).id);
-        //    System.out.println(subgraph.get(i).score);
-        //    System.out.println(subgraph.get(i).neighbors.size());
-        //    System.out.println("----");
-        //}
-
 		// sweep
 		// finding the best S
 		HashSet<String> S = new HashSet<String>();
@@ -154,11 +135,11 @@ public class Test {
 		}
 
 		// generate S*
-		System.out.println(seed + "\t" + P.get(seed));
-        for (int i = 0; i < bestSSize; i++) {
-            String id = subgraph.get(i).id;
-            System.out.println(id + "\t" + P.get(id));
-        }
+		//System.out.println(seed + "\t" + P.get(seed));
+        //for (int i = 0; i < bestSSize; i++) {
+        //    String id = subgraph.get(i).id;
+        //    System.out.println(id + "\t" + P.get(id));
+        //}
 		 
         //System.out.println(bestSSize);
 		//
@@ -167,31 +148,31 @@ public class Test {
 		// System.out.println("time: " + elapsedTime);
 
 		// output GDF format file
-		//System.out
-		//		.println("nodedef>name VARCHAR,label VARCHAR,width DOUBLE,height DOUBLE");
-		//double seedScore = Math.max(1, Math.log(P.get(seed) / epsilon));
-		//System.out.println(seed + "," + seed + "," + seedScore + ","
-		//		+ seedScore);
-		//for (int i = 0; i < bestSSize; i++) {
-		//	String id = subgraph.get(i).id;
-		//	double score = Math.max(1, Math.log(P.get(id) / epsilon));
-		//	System.out.println(id.replace(',', '.') + ","
-		//			+ id.replace(',', '.') + "," + score + "," + score);
-		//}
+		System.out
+				.println("nodedef>name VARCHAR,label VARCHAR,width DOUBLE,height DOUBLE");
+		double seedScore = Math.max(1, Math.log(P.get(seed) / epsilon));
+		System.out.println(seed + "," + seed + "," + seedScore + ","
+				+ seedScore);
+		for (int i = 0; i < bestSSize; i++) {
+			String id = subgraph.get(i).id;
+			double score = Math.max(1, Math.log(P.get(id) / epsilon));
+			System.out.println(id.replace(',', '.') + ","
+					+ id.replace(',', '.') + "," + score + "," + score);
+		}
 
-		//System.out.println("edgedef>node1 VARCHAR,node2 VARCHAR");
-		//S.clear();
-		//S.add(seed);
-		//for (int i = 0; i < bestSSize; i++) {
-		//	String id = subgraph.get(i).id;
-		//	for (int j = 0; j < subgraph.get(i).neighbors.size(); j++) {
-		//		String neighbor = subgraph.get(i).neighbors.get(j);
-		//		if (S.contains(neighbor)) {
-		//			System.out.println(id.replace(',', '.') + "," + neighbor);
-		//		}
-		//	}
-		//	S.add(id);
-		//}
+		System.out.println("edgedef>node1 VARCHAR,node2 VARCHAR");
+		S.clear();
+		S.add(seed);
+		for (int i = 0; i < bestSSize; i++) {
+			String id = subgraph.get(i).id;
+			for (int j = 0; j < subgraph.get(i).neighbors.size(); j++) {
+				String neighbor = subgraph.get(i).neighbors.get(j);
+				if (S.contains(neighbor)) {
+					System.out.println(id.replace(',', '.') + "," + neighbor);
+				}
+			}
+			S.add(id);
+		}
 	}
 }
 
